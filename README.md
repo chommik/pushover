@@ -11,15 +11,21 @@ This is a library and a commandline client to the [Pushover.net](http://pushover
 
 You can import pushover simply with ```import pushover```
 
-When initialising a ```PushoverCLient``` you may pass a path to a pushover configuration file as seen in example.pushover. The library will also look for a ```$HOME/.pushover``` but the configuration file passed in manually takes precedence.
+When initialising a ```PushoverCLient``` you may pass a path to a pushover configuration file as seen in example.pushover. The library will also look for a ```$HOME/.pushover``` but the configuration file passed in manually takes precedence. Instead of providing configutation file, you can set arguments app_key and user_key.
 
 ```python
 import pushover
 client = pushover.PushoverClient("/a/path/to/a/file")
+# or: client = pushover.PushoverClient(app_key="XXXXXXXXX", user_key="XXXXXXXXXXXXXXX")
 try:
     client.send_message("Some message")
 except SomeError:
     ... deal with it ...
+```
+
+If you need to supply optional parameters like title or sound, append them to send_message.
+```python
+client.send_message("Some message", title="Title", priority=1)
 ```
 
 Take note that when using this as a module the message you send will not be automatically truncated to 512 characters. It is up to your application code to ensure the message passed meets the requirements or catch the ```pushover.PushoverMessageTooBig``` exception.
@@ -46,7 +52,3 @@ Options:
   -m MESSAGE, --message=MESSAGE
                         The message to send, will truncate to 512 chars.
 ```
-
-## Todo
-
- * Be able to pass in a configurationobject instead of a file when being imported.

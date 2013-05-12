@@ -32,17 +32,20 @@ class PushoverMessageTooBig(PushoverException):
 
 class PushoverClient(object):
     """ PushoverClient, used to send messages to the Pushover.net service. """
-    def __init__(self, configfile=""):
-        self.configfile = configfile
-        self.parser = SafeConfigParser()
-        self.files = self.parser.read([self.configfile, os.path.expanduser("~/.pushover")])
-        if not self.files:
-            logger.critical("No valid configuration found, exiting.")
-            sys.exit(1)
-        self.conf = { "app_key": self.parser.get("pushover","app_key"),
-             "user_key": self.parser.get("pushover","user_key")}
+    def __init__(self, configfile="", app_key="", user_key=""):
+        if app_key == "" or user_key == "":
+            self.configfile = configfile
+            self.parser = SafeConfigParser()
+            self.files = self.parser.read([self.configfile, os.path.expanduser("~/.pushover")])
+            if not self.files:
+                logger.critical("No valid configuration found, exiting.")
+                raise RuntimeError("No valid configuration found")
+            self.conf = { "app_key": self.parser.get("pushover","app_key"),
+                "user_key": self.parser.get("pushover","user_key")}
+        else:
+            self.conf = {"app_key": app_key, "user_key": user_key}
 
-    def send_message(self, message):
+    def send_message(self, message, **kwargs):
         if len(message) > 512:
             raise PushoverMessageTooBig("The supplied message is bigger than 512 characters.")
         payload = {
@@ -50,6 +53,7 @@ class PushoverClient(object):
                 "user" : self.conf["user_key"],
                 "message": message,
         }   
+        payload = dict(payload.items() + kwargs.items())
         r = requests.post("https://api.pushover.net/1/messages.json", data=payload )
         if not r.status_code == requests.codes.ok:
             raise r.raise_for_status()
